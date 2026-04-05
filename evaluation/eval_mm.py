@@ -92,9 +92,16 @@ def evaluate(args):
         print("No valid samples evaluated. Check your test dataset and image paths.")
         return
 
+    label_order = [0, 1]
     acc = accuracy_score(all_labels, all_preds)
-    precision, recall, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='macro')
-    cm = confusion_matrix(all_labels, all_preds)
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        all_labels,
+        all_preds,
+        labels=label_order,
+        average='macro',
+        zero_division=0,
+    )
+    cm = confusion_matrix(all_labels, all_preds, labels=label_order)
     
     print(f"Total evaluated samples: {len(all_labels)}")
     print(f"Accuracy:  {acc:.4f}")
@@ -104,7 +111,15 @@ def evaluate(args):
     print("\nConfusion Matrix:")
     print(cm)
     print("\nDetailed Report:")
-    print(classification_report(all_labels, all_preds, target_names=["Real", "Fake"]))
+    print(
+        classification_report(
+            all_labels,
+            all_preds,
+            labels=label_order,
+            target_names=["Real", "Fake"],
+            zero_division=0,
+        )
+    )
     
     # Save predictions
     out_dir = "outputs"

@@ -24,8 +24,25 @@ def normalize_image_path(record: dict) -> str:
 
 
 def derive_label(record: dict) -> int:
-    raw = record.get("fake_cls", record.get("gt_answers", 0))
-    return 1 if str(raw).lower() in {"fake", "1", "true"} else 0
+    image_path = (record.get("image_path", "") or "").lower().lstrip("/\\")
+    if image_path.startswith("fake/"):
+        return 1
+    if image_path.startswith("real/"):
+        return 0
+
+    fake_cls = str(record.get("fake_cls", "") or "").lower()
+    if fake_cls in {"original", "real", "authentic"}:
+        return 0
+    if fake_cls:
+        return 1
+
+    gt_answer = str(record.get("gt_answers", "") or "").lower()
+    if gt_answer in {"true", "real", "original", "0"}:
+        return 0
+    if gt_answer in {"false", "fake", "1"}:
+        return 1
+
+    return 0
 
 
 def filter_existing_records(records: Iterable[dict], images_root: str) -> Tuple[List[dict], int]:

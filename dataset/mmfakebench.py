@@ -3,6 +3,28 @@ import os
 from PIL import Image
 from torch.utils.data import Dataset
 
+
+def derive_mmfakebench_label(item):
+    image_path = (item.get("image_path", "") or "").lower().lstrip("/\\")
+    if image_path.startswith("fake/"):
+        return 1
+    if image_path.startswith("real/"):
+        return 0
+
+    fake_cls = str(item.get("fake_cls", "") or "").lower()
+    if fake_cls in {"original", "real", "authentic"}:
+        return 0
+    if fake_cls:
+        return 1
+
+    gt_answer = str(item.get("gt_answers", "") or "").lower()
+    if gt_answer in {"true", "real", "original", "0"}:
+        return 0
+    if gt_answer in {"false", "fake", "1"}:
+        return 1
+
+    return 0
+
 class MMFakeBenchDataset(Dataset):
     """
     MMFakeBench dataset loader.
@@ -65,9 +87,7 @@ class MMFakeBenchDataset(Dataset):
         text = item.get("text", "")
         img_filename = item.get("image_path", "")
         
-        # MMFakeBench specific label field (e.g., 'fake_cls' or 'gt_answers')
-        label_raw = item.get("fake_cls", item.get("gt_answers", 0))
-        label = 1 if str(label_raw).lower() in ['fake', '1', 'true'] else 0
+        label = derive_mmfakebench_label(item)
 
         img_path = os.path.join(self.image_dir, img_filename)
         image = None

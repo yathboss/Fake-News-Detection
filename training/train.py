@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+from collections import Counter
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,7 +11,7 @@ from transformers import CLIPProcessor
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from dataset.mmfakebench import MMFakeBenchDataset
+    from dataset.mmfakebench import MMFakeBenchDataset, derive_mmfakebench_label
     from models.multimodal_classifier import MultimodalFakeNewsClassifier
     from sklearn.metrics import f1_score
 except ImportError as e:
@@ -67,7 +68,23 @@ def train(args):
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn)
     
-    criterion = nn.CrossEntropyLoss()
+    train_label_counts = Counter(derive_mmfakebench_label(item) for item in train_dataset.data)
+    val_label_counts = Counter(derive_mmfakebench_label(item) for item in val_dataset.data)
+    print(f"Train label counts: real={train_label_counts.get(0, 0)}, fake={train_label_counts.get(1, 0)}")
+    print(f"Val label counts: real={val_label_counts.get(0, 0)}, fake={val_label_counts.get(1, 0)}")
+
+    total_train = max(1, sum(train_label_counts.values()))
+    class_weights = torch.tensor(
+        [
+            total_train / max(1, 2 * train_label_counts.get(0, 0)),
+            total_train / max(1, 2 * train_label_counts.get(1, 0)),
+        ],
+        dtype=torch.float32,
+        device=device,
+    )
+    print(f"Using class weights: real={class_weights[0].item():.4f}, fake={class_weights[1].item():.4f}")
+
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate)
     
     best_f1 = 0.0

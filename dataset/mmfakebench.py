@@ -56,19 +56,27 @@ class MMFakeBenchDataset(Dataset):
                     f.seek(0)
                     data = [json.loads(line) for line in f]
             
-            # Implementation of the fallback train/val split strategy
+            # Implementation of the fallback train/val split strategy. We keep
+            # the split stratified so class imbalance does not get amplified by
+            # a random slice.
             if self.split_mode != "all":
                 random.seed(self.seed)
-                indices = list(range(len(data)))
-                random.shuffle(indices)
-                split_idx = int(len(data) * self.split_ratio)
-                
+                real_items = [item for item in data if derive_mmfakebench_label(item) == 0]
+                fake_items = [item for item in data if derive_mmfakebench_label(item) == 1]
+                random.shuffle(real_items)
+                random.shuffle(fake_items)
+
+                real_split_idx = int(len(real_items) * self.split_ratio)
+                fake_split_idx = int(len(fake_items) * self.split_ratio)
+
                 if self.split_mode == "train":
                     print(f"Fallback assumption: using {self.split_ratio*100}% of {os.path.basename(self.annotation_file)} for training.")
-                    data = [data[indices[i]] for i in range(split_idx)]
+                    data = real_items[:real_split_idx] + fake_items[:fake_split_idx]
                 elif self.split_mode == "val":
                     print(f"Fallback assumption: using {(1-self.split_ratio)*100}% of {os.path.basename(self.annotation_file)} for validation.")
-                    data = [data[indices[i]] for i in range(split_idx, len(indices))]
+                    data = real_items[real_split_idx:] + fake_items[fake_split_idx:]
+
+                random.shuffle(data)
         else:
             print(f"Warning: Annotation file '{self.annotation_file}' not found. Using an empty dataset structure.")
         

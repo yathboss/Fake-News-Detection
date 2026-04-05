@@ -35,19 +35,22 @@ class MultimodalFakeNewsClassifier(nn.Module):
         """
         Forward pass for multimodal input.
         """
-        # Get text features
-        text_outputs = self.clip.get_text_features(
+        # Use the unified CLIP forward path so we always get projected embeddings
+        # across Transformers versions.
+        clip_outputs = self.clip(
             input_ids=input_ids,
-            attention_mask=attention_mask
+            attention_mask=attention_mask,
+            pixel_values=pixel_values,
+            return_dict=True,
         )
-        # Get image features
-        image_outputs = self.clip.get_image_features(
-            pixel_values=pixel_values
-        )
-        
-        # Normalize features (standard practice for CLIP embeddings)
-        text_features = text_outputs / text_outputs.norm(dim=-1, keepdim=True)
-        image_features = image_outputs / image_outputs.norm(dim=-1, keepdim=True)
+
+        text_features = clip_outputs.text_embeds
+        image_features = clip_outputs.image_embeds
+
+        # Some versions already return normalized embeddings, but this keeps the
+        # downstream fusion head consistent and safe across environments.
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         
         # Combine text and image features
         fused_features = torch.cat((text_features, image_features), dim=1)

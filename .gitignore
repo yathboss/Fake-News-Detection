@@ -16,6 +16,9 @@ checkpoints/
 retrieval/index.faiss
 retrieval/metadata.json
 out.txt
+dataset/images.zip
+mini_dataset/
+mini_dataset_test/
 
 .DS_Store
 Thumbs.db

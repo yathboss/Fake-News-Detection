@@ -1,3 +1,10 @@
+"""
+LLM Verdict Module
+
+This module uses an LLM (Ollama - llama3.1) to classify claims into six truth categories
+based on evidence, entities, and knowledge graph triples. It generates a predicted label,
+explanation, and confidence score. If the LLM is unavailable, a heuristic fallback is used.
+"""
 from __future__ import annotations
 
 import json

@@ -9,6 +9,8 @@ import pandas as pd
 REQUIRED_COLUMNS = {"label", "statement"}
 
 
+ # Loads dataset for fake news detection
+
 def resolve_dataset_file(dataset_dir: str | Path, preferred_file: Optional[str] = None) -> Path:
     dataset_dir = Path(dataset_dir)
     candidates = []

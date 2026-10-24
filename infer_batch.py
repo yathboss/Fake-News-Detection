@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 try:
     from torch.utils.data import DataLoader
     from transformers import CLIPProcessor
-    from models.multimodal_classifier import MultimodalFakeNewsClassifier
+    from multimodal import MultimodalFakeNewsClassifier
     from dataset.mmfakebench import MMFakeBenchDataset
 except ImportError as e:
     print(f"Error importing modules: {e}")

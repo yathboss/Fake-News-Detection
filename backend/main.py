@@ -9,9 +9,9 @@ from PIL import Image
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from models.multimodal_classifier import MultimodalFakeNewsClassifier
+    from multimodal import MultimodalFakeNewsClassifier
     from transformers import CLIPProcessor
-    from retrieval.rag_retriever import RealRAGRetriever
+    from rag_retriever import RealRAGRetriever
 except ImportError as e:
     print(f"Error importing modules: {e}")
 

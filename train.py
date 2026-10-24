@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from dataset.mmfakebench import MMFakeBenchDataset, derive_mmfakebench_label
-    from models.multimodal_classifier import MultimodalFakeNewsClassifier
+    from multimodal import MultimodalFakeNewsClassifier
     from sklearn.metrics import f1_score
 except ImportError as e:
     print(f"Error importing modules: {e}")

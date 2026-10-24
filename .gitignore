@@ -22,3 +22,8 @@ mini_dataset_test/
 
 .DS_Store
 Thumbs.db
+
+secrets/
+*.env
+.env
+.env.*

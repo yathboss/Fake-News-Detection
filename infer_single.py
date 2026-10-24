@@ -8,8 +8,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from transformers import CLIPProcessor
-    from models.multimodal_classifier import MultimodalFakeNewsClassifier
-    from retrieval.rag_retriever import RealRAGRetriever
+    from multimodal import MultimodalFakeNewsClassifier
+    from rag_retriever import RealRAGRetriever
 except ImportError as e:
     print(f"Error importing modules: {e}. Please ensure requirements are installed.")
     sys.exit(1)

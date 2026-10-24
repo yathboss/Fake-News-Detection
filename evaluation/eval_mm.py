@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from dataset.mmfakebench import MMFakeBenchDataset
-    from models.multimodal_classifier import MultimodalFakeNewsClassifier
+    from multimodal import MultimodalFakeNewsClassifier
 except ImportError as e:
     print(f"Error importing modules: {e}")
     sys.exit(1)

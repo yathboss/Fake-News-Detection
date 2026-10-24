@@ -27,24 +27,40 @@ class RealRAGRetriever:
         """
         Retrieves top_k evidence snippets for a text query.
         Returns a list of dictionaries with 'text' and 'score'.
+
+        Exact or near-exact self-matches (the query text itself, or trivial
+        whitespace/case variants of it) are excluded from the results: the
+        goal of RAG here is independent evidence, not a restatement of the
+        claim being checked. We over-fetch from FAISS and filter, since the
+        index may legitimately contain the same claim text from a different
+        row (e.g. the same headline paired with a different image).
         """
         if not self.ready:
             print("Warning: RAG Retriever not ready, returning empty list.")
             return []
-            
+
+        normalized_query = " ".join(query.lower().split())
+
         # Encode query
         import faiss # lazy import to catch scoping issues if needed
         query_emb = self.model.encode([query], convert_to_numpy=True).astype('float32')
         faiss.normalize_L2(query_emb)
-        
-        # Search index
-        scores, indices = self.index.search(query_emb, top_k)
-        
+
+        # Over-fetch so that filtering out self-matches still leaves top_k results.
+        search_k = max(top_k * 4, top_k + 10)
+        scores, indices = self.index.search(query_emb, search_k)
+
         results = []
         for score, idx in zip(scores[0], indices[0]):
-            if idx < len(self.metadata):
-                results.append({
-                    "text": self.metadata[idx],
-                    "score": float(score)
-                })
+            if idx < 0 or idx >= len(self.metadata):
+                continue
+            candidate_text = self.metadata[idx]
+            if " ".join(candidate_text.lower().split()) == normalized_query:
+                continue  # exclude self-match
+            results.append({
+                "text": candidate_text,
+                "score": float(score)
+            })
+            if len(results) >= top_k:
+                break
         return results

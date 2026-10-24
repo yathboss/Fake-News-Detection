@@ -1,0 +1,71 @@
+{
+  "Majority-class baseline": {
+    "accuracy": 0.7,
+    "precision_macro": 0.35,
+    "recall_macro": 0.5,
+    "f1_macro": 0.4117647058823529,
+    "confusion_matrix": [
+      [
+        0,
+        3000
+      ],
+      [
+        0,
+        7000
+      ]
+    ],
+    "n": 10000,
+    "majority_label": "Fake"
+  },
+  "Text-only (frozen CLIP text + MLP)": {
+    "accuracy": 0.6773,
+    "precision_macro": 0.6430505850783512,
+    "recall_macro": 0.6635,
+    "f1_macro": 0.6454079911808891,
+    "confusion_matrix": [
+      [
+        1887,
+        1113
+      ],
+      [
+        2114,
+        4886
+      ]
+    ],
+    "n": 10000
+  },
+  "CLIP multimodal, no RAG": {
+    "accuracy": 0.7853,
+    "precision_macro": 0.7446011395871368,
+    "recall_macro": 0.7488333333333332,
+    "f1_macro": 0.7466228705419535,
+    "confusion_matrix": [
+      [
+        1973,
+        1027
+      ],
+      [
+        1120,
+        5880
+      ]
+    ],
+    "n": 10000
+  },
+  "CLIP multimodal + RAG": {
+    "accuracy": 0.7719,
+    "precision_macro": 0.7306008842148554,
+    "recall_macro": 0.7429761904761905,
+    "f1_macro": 0.735833247198295,
+    "confusion_matrix": [
+      [
+        2012,
+        988
+      ],
+      [
+        1293,
+        5707
+      ]
+    ],
+    "n": 10000
+  }
+}

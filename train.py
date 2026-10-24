@@ -1,7 +1,9 @@
 import argparse
+import random
 import sys
 import os
 from collections import Counter
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,11 +14,20 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from dataset.mmfakebench import MMFakeBenchDataset, derive_mmfakebench_label
-    from models.multimodal_classifier import MultimodalFakeNewsClassifier
+    from multimodal import MultimodalFakeNewsClassifier
     from sklearn.metrics import f1_score
 except ImportError as e:
     print(f"Error importing modules: {e}")
     sys.exit(1)
+
+
+def set_seed(seed: int):
+    """Seeds python/numpy/torch so a training run (weight init, DataLoader
+    shuffling, dropout) is reproducible given the same seed. The 80/20
+    train/val split itself is seeded separately inside MMFakeBenchDataset."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
 def collate_fn(batch):
     return {
@@ -55,15 +66,17 @@ def eval_epoch(model, dataloader, processor, device):
 
 def train(args):
     print("Initializing MultiModal Fake News Training Pipeline...")
+    set_seed(args.seed)
+    print(f"Seeded random/numpy/torch with seed={args.seed} for reproducibility.")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
-    
+
     processor = CLIPProcessor.from_pretrained(args.clip_model)
     model = MultimodalFakeNewsClassifier(clip_model_name=args.clip_model, num_classes=2).to(device)
-    
+
     print(f"Loading datasets using fallback val-split strategy from: {args.annotation_file}")
-    train_dataset = MMFakeBenchDataset(args.annotation_file, args.image_dir, split_mode="train", split_ratio=0.8)
-    val_dataset = MMFakeBenchDataset(args.annotation_file, args.image_dir, split_mode="val", split_ratio=0.8)
+    train_dataset = MMFakeBenchDataset(args.annotation_file, args.image_dir, split_mode="train", split_ratio=0.8, seed=args.seed)
+    val_dataset = MMFakeBenchDataset(args.annotation_file, args.image_dir, split_mode="val", split_ratio=0.8, seed=args.seed)
     
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn)
@@ -144,6 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--learning_rate", type=float, default=1e-4)
     parser.add_argument("--output_dir", type=str, default="checkpoints/")
+    parser.add_argument("--seed", type=int, default=42, help="Seed for the train/val split and for model init / shuffling.")
     
     args = parser.parse_args()
     train(args)

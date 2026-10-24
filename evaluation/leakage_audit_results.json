@@ -1,0 +1,14 @@
+{
+  "val_internal_dupes": 4,
+  "test_internal_dupes": 53,
+  "val_test_exact_overlap_count": 3,
+  "val_test_exact_overlap_examples": [
+    "global health organization warns against drinking water due to new deadly contaminant found in every household tap",
+    "study claims drinking red wine prevents covid-19 infection",
+    "study finds consumption of avocado seeds reduces risk of heart disease"
+  ],
+  "val_test_near_duplicate_examples": [],
+  "train_val_split_overlap": 2,
+  "default_index_includes_heldout_val_count": 203,
+  "default_index_includes_test_count": 3
+}
